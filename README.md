@@ -27,7 +27,7 @@ Installation
 
 Clone the repository:
 
-git clone https://github.com/yourusername/taskflow.git
+git clone https://github.com/Soundarya-Cyber/To-Do-Manager.git
 cd taskflow
 
 
