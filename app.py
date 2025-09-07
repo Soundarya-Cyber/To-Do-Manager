@@ -9,7 +9,7 @@ if "task_manager" not in st.session_state:
     st.session_state.task_manager = TaskManager()
 task_manager = st.session_state.task_manager
 
-# Sidebar
+# --- Sidebar ---
 st.sidebar.title("TaskFlow")
 st.sidebar.subheader("Overview")
 
@@ -19,7 +19,7 @@ st.sidebar.write(f"Completed: {sum(t['completed'] for t in all_tasks)}")
 
 filter_choice = st.sidebar.radio("Filter", ["All", "Active", "Completed"])
 
-# Main
+# --- Main ---
 st.title("My Tasks")
 st.write("Manage your daily tasks efficiently")
 
@@ -28,9 +28,10 @@ if "new_task_text" not in st.session_state:
     st.session_state.new_task_text = ""
 
 st.session_state.new_task_text = st.text_input("Enter new task", st.session_state.new_task_text)
+
 if st.button("Add Task") and st.session_state.new_task_text.strip():
     task_manager.add_task(st.session_state.new_task_text.strip(), str(date.today()))
-    st.session_state.new_task_text = ""  # clear input
+    st.session_state.new_task_text = ""  # Clear input after adding
 
 # Filter tasks
 filtered_tasks = [
@@ -47,7 +48,8 @@ for t in filtered_tasks:
 
     # Task text
     with cols[0]:
-        st.write(f"- **{t['task']}** ({t['date']})")
+        status = "✅" if t["completed"] else ""
+        st.write(f"- **{t['task']}** ({t['date']}) {status}")
 
     # Edit
     edit_key = f"edit_text_{i}"
@@ -55,17 +57,16 @@ for t in filtered_tasks:
         st.session_state[edit_key] = t["task"]
 
     with cols[1]:
-        # Show text_input outside button click
-        new_text = st.text_input("Edit task:", value=st.session_state[edit_key], key=edit_key)
+        # Let text_input handle session_state automatically
+        new_text = st.text_input("Edit task:", key=edit_key)
         if new_text.strip() != t["task"]:
             task_manager.edit_task(i, new_text.strip())
-            st.session_state[edit_key] = new_text.strip()
 
     # Delete
     with cols[2]:
         if st.button("🗑️ Delete", key=f"delete_{i}"):
             task_manager.delete_task(i)
-            break
+            break  # Stop loop to avoid session_state issues
 
     # Complete
     with cols[3]:
