@@ -4,44 +4,41 @@ from task_manager import TaskManager
 
 st.set_page_config(page_title="TaskFlow", layout="wide")
 
-# Initialize TaskManager in session
+# Initialize TaskManager
 if "task_manager" not in st.session_state:
     st.session_state.task_manager = TaskManager()
 task_manager = st.session_state.task_manager
 
-# --- Sidebar ---
+# Sidebar
 st.sidebar.title("TaskFlow")
-st.sidebar.subheader("ListTodo Overview")
+st.sidebar.subheader("Overview")
 
-# Always fetch tasks fresh
 all_tasks = task_manager.get_tasks()
-st.sidebar.write(f"Total ListTodo: {len(all_tasks)}")
-st.sidebar.write(f"Completed: {sum(1 for t in all_tasks if t['completed'])}")
+st.sidebar.write(f"Total tasks: {len(all_tasks)}")
+st.sidebar.write(f"Completed: {sum(t['completed'] for t in all_tasks)}")
 
-filter_choice = st.sidebar.radio("Filter ListTodo", ["All", "Active", "Completed"])
+filter_choice = st.sidebar.radio("Filter", ["All", "Active", "Completed"])
 
-# --- Main ---
+# Main
 st.title("My Tasks")
 st.write("Manage your daily tasks efficiently")
 
-# Add new task
+# Add Task
 if "new_task_text" not in st.session_state:
     st.session_state.new_task_text = ""
 
 st.session_state.new_task_text = st.text_input("Enter new task", st.session_state.new_task_text)
-
 if st.button("Add Task") and st.session_state.new_task_text.strip():
     task_manager.add_task(st.session_state.new_task_text.strip(), str(date.today()))
-    st.session_state.new_task_text = ""  # Clear input
+    st.session_state.new_task_text = ""  # clear input
 
 # Filter tasks
-filtered_tasks = []
-for t in all_tasks:
-    if filter_choice == "Active" and t["completed"]:
-        continue
-    if filter_choice == "Completed" and not t["completed"]:
-        continue
-    filtered_tasks.append(t)
+filtered_tasks = [
+    t for t in all_tasks
+    if (filter_choice == "All") or
+       (filter_choice == "Active" and not t["completed"]) or
+       (filter_choice == "Completed" and t["completed"])
+]
 
 # Display tasks
 for t in filtered_tasks:
@@ -56,20 +53,21 @@ for t in filtered_tasks:
     edit_key = f"edit_text_{i}"
     if edit_key not in st.session_state:
         st.session_state[edit_key] = t["task"]
+
     with cols[1]:
-        if st.button("✏️ Edit", key=f"edit_{i}"):
-            new_text = st.text_input("Edit task:", st.session_state[edit_key], key=edit_key)
-            if new_text.strip() and new_text.strip() != t["task"]:
-                task_manager.edit_task(i, new_text.strip())
-                st.session_state[edit_key] = new_text.strip()
+        # Show text_input outside button click
+        new_text = st.text_input("Edit task:", value=st.session_state[edit_key], key=edit_key)
+        if new_text.strip() != t["task"]:
+            task_manager.edit_task(i, new_text.strip())
+            st.session_state[edit_key] = new_text.strip()
 
     # Delete
     with cols[2]:
         if st.button("🗑️ Delete", key=f"delete_{i}"):
             task_manager.delete_task(i)
-            break  # Break to avoid iteration issues
+            break
 
-    # Complete / Completed column
+    # Complete
     with cols[3]:
         if t["completed"]:
             st.write("✅ Completed")
@@ -80,6 +78,7 @@ for t in filtered_tasks:
             if st.button("✅ Complete", key=f"complete_{i}"):
                 task_manager.toggle_task(i)
                 break
+
 
 
 
