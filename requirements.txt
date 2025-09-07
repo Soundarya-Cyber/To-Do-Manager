@@ -1,0 +1,36 @@
+streamlit
+google-generativeai
+python-dotenv
+import os
+from dotenv import load_dotenv
+import google.generativeai as genai
+
+# Load environment variables from .env
+load_dotenv()
+
+# Get API key
+api_key = os.getenv("GOOGLE_API_KEY")
+if not api_key:
+    raise ValueError("API key not found. Please set GOOGLE_API_KEY in .env")
+
+# Configure Gemini / Generative AI API
+genai.configure(api_key=api_key)
+
+def generate_tasks(prompt: str):
+    """
+    Generate a list of tasks from a prompt using Gemini AI.
+    """
+    model = genai.GenerativeModel("gemini-pro")
+    response = model.generate_content(prompt)
+
+    text = response.text.strip()
+
+    # Try to split into tasks by newlines (handling bullets, numbers, etc.)
+    tasks = [line.strip("-•1234567890. ").strip() 
+             for line in text.split("\n") if line.strip()]
+
+    # If AI returned one long sentence, fallback to splitting by periods
+    if len(tasks) == 1:
+        tasks = [t.strip() for t in text.split(".") if t.strip()]
+
+    return tasks

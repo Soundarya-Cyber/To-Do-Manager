@@ -1,0 +1,12 @@
+[
+    {
+        "task": "add",
+        "date": "2025-09-07",
+        "completed": true
+    },
+    {
+        "task": "pinky",
+        "date": "2025-09-07",
+        "completed": false
+    }
+]
